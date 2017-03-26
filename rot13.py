@@ -8,6 +8,7 @@ form="""
 	<br>
 		<textarea rows="7" cols="60" type="text" name= "text">%s</textarea>
 		<br>
+		hello
 		<br>
 		<input type="submit">
 </form>
