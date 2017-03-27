@@ -26,11 +26,15 @@ form="""
 	</label>
 	<label>
 		Password 
-		<input type="text" name="password1" value = %(password1)s>
+		<input type="text" name="password1" value = "%(password1)s">
 	</label>
 	<label>
 		Password 
-		<input type="text" name="password2" value= %(password2)s>
+		<input type="text" name="password2" value= "%(password2)s">
+	</label>
+	<label>
+		Email Address 
+		<input type="text" name="email" value= "%(email)s">
 	</label>
 	<br>
 	<br>
@@ -56,30 +60,24 @@ months = ['January',
 month_abbvs = dict((m[:3].lower(),m) for m in months)
 
 def valid_user(username):
-	error = false
 	if username:
-		for n in username:
-			if n = " ":
-				error = true
-	else:
-		error = true			
-		
-def valid_password(password):
-	error = false
-	if password:
-	else:
-		error = true
+		return username
 
+def valid_password(password):
+	if password:
+		return password	
+	
 def escape_html(s):
     return cgi.escape(s, quote = True)
 
 class MainPage(webapp2.RequestHandler):
 
-	def write_form(self, error="", username="", password1="", password2=""):
-		self.response.out.write(form %{"error": error,
-										"username": escape_html(username),
-										"password1": escape_html(password1),
-										"password2": escape_html(password2)})
+	def write_form(self, error="", username="", password1="", password2="", email= ""):
+		self.response.out.write(form %{"error": (error),
+										"username": (username),
+										"password1": (password1),
+										"password2": (password2),
+										"email": (email)})
 
 	def get(self):		#get draws the empty form
 		self.write_form()
@@ -88,13 +86,14 @@ class MainPage(webapp2.RequestHandler):
 		username = self.request.get('username')
 		password1 = self.request.get('password1')
 		password2 = self.request.get('password2')
-
+		email = self.request.get("email")
+		
 		username = valid_user(username)
 		password1 = valid_password(password1)
 		password2 = valid_password(password2) 
 
-		if not (username and password1 and password2):
-			self.write_form("That doesn't look valid",username, password1, password2)
+		if not (username and password1 and password2) or password1 <> password2:
+			self.write_form("That doesn't look valid",username, password1, password2, email)
 		else:
 			self.redirect("/thanks")
 
