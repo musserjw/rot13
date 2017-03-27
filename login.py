@@ -75,12 +75,11 @@ def escape_html(s):
 
 class MainPage(webapp2.RequestHandler):
 
-	def write_form(self, error="", username="", password1="", password2="", email=""):
+	def write_form(self, error="", username="", password1="", password2=""):
 		self.response.out.write(form %{"error": error,
 										"username": escape_html(username),
 										"password1": escape_html(password1),
-										"password2": escape_html(password2),
-										"email": escape_html(email)})
+										"password2": escape_html(password2)})
 
 	def get(self):		#get draws the empty form
 		self.write_form()
@@ -89,7 +88,6 @@ class MainPage(webapp2.RequestHandler):
 		username = self.request.get('username')
 		password1 = self.request.get('password1')
 		password2 = self.request.get('password2')
-		email = self.request.get('email')
 
 		username = valid_user(username)
 		password1 = valid_password(password1)
