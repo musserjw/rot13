@@ -75,7 +75,7 @@ def escape_html(s):
 
 class MainPage(webapp2.RequestHandler):
 
-	def write_form(self, error="", username="", password1="", password2=""):
+	def write_form(self, username="", password1="", password2=""):
 		self.response.out.write(form %{"error": error,
 										"username": escape_html(username),
 										"password1": escape_html(password1),
