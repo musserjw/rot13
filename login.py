@@ -14,96 +14,85 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+import jinja2
 import webapp2
 import cgi
-#value defaults form to a value
-#write_form function also needs to have month,day,year values defaulted in the definition and dictionary
-form="""
-<form method = "post">
-	<label>
-		Username 
-		<input type="text" name="username" value= "%(username)s">
-	</label>
-	<label>
-		Password 
-		<input type="text" name="password1" value = "%(password1)s">
-	</label>
-	<label>
-		Password 
-		<input type="text" name="password2" value= "%(password2)s">
-	</label>
-	<label>
-		Email Address 
-		<input type="text" name="email" value= "%(email)s">
-	</label>
-	<br>
-	<br>
-	<div>%(error)s</div>
-	<br>
-	<br>
-	<input type="submit">
-</form>	
-"""
-months = ['January',
-          'February',
-          'March',
-          'April',
-          'May',
-          'June',
-          'July',
-          'August',
-          'September',
-          'October',
-          'November',
-          'December']
+import re
 
-month_abbvs = dict((m[:3].lower(),m) for m in months)
 
-def valid_user(username):
-	if username:
-		return username
+template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape= True)
 
-def valid_password(password):
-	if password:
-		return password	
+def valid_user(username=" "):
+	user_re = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+	return username and user_re.match(username)
+
+def valid_password(password=" "):
+	password_re = re.compile(r"^.{3,20}$")
+	return password and password_re.match(password)
+
+def valid_email(email):
+	email_re = re.compile(r"^[\S]+@[\S]+\.[\S]+$")
+	return not email or email_re.match(email)
 	
 def escape_html(s):
     return cgi.escape(s, quote = True)
 
-class MainPage(webapp2.RequestHandler):
 
-	def write_form(self, error="", username="", password1="", password2="", email= ""):
-		self.response.out.write(form %{"error": (error),
-										"username": (username),
-										"password1": (password1),
-										"password2": (password2),
-										"email": (email)})
+class Handler(webapp2.RequestHandler):
+	def write(self, *a, **kw):
+		self.response.out.write(*a,**kw)
 
+	def render_str(self, template, **params):
+		t = jinja_env.get_template(template)
+		return t.render(params)
+
+	def render(self, template, **kw):
+		self.write(self.render_str(template, **kw))		
+
+
+
+class Signup(Handler):
 	def get(self):		#get draws the empty form
-		self.write_form()
+		self.render('signup-form.html')
 
 	def post(self):		#draws form with new error message
 		username = self.request.get('username')
-		password1 = self.request.get('password1')
-		password2 = self.request.get('password2')
+		password = self.request.get('password')
+		verify = self.request.get('verify')
 		email = self.request.get("email")
 		
-		username = valid_user(username)
-		password1 = valid_password(password1)
-		password2 = valid_password(password2) 
+		have_error = False
+		params = dict(username = username,
+						email = email)
 
-		if not (username and password1 and password2) or password1 <> password2:
-			self.write_form("That doesn't look valid",username, password1, password2, email)
+		if not valid_user(username):
+			params['error_username'] = "That's not a valid username."
+			have_error = True
+		if not valid_password(password):
+			params['error_password'] = "That's not a valid password."
+			have_error = True
+		elif password != verify:
+			params['error_verify'] = "Your passwords didn't match."
+			have_error = True
+		if not valid_email(email):
+			params['error_email'] = "That's not a valid email."
+			have_error = True
+
+		if have_error:
+			self.render('signup-form.html',**params)
 		else:
-			self.redirect("/thanks")
+			self.redirect("/welcome?username=" + username)
 
-class ThanksHandler(webapp2.RequestHandler):
+class Welcome(Handler):
 	def get(self):
-		self.response.out.write("Thanks! That's a totally valid form!")
+		username = self.request.get('username')
+		if valid_user(username):
+			self.render('welcome.html', username = username)
+		else:
+			self.redirect('/signup')	
 
-app = webapp2.WSGIApplication([
-    ('/', MainPage),
-    ('/thanks', ThanksHandler)
-], debug=True)
+app = webapp2.WSGIApplication([('/signup', Signup),('/welcome', Welcome)], debug=True)
 
 
