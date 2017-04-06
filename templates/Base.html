@@ -1,16 +1,21 @@
 <!DOCTYPE html>
-
 <html>
-	<head>
-		<title>Udacity Templates!</title>
-	</head>
-	
-	<body style="margin: 20">
-		<h1 style= "background-color: #ddd; height: 50px">
-			Udacity Templates
-		</h1>
-		
-		{% block content %}
-		{% endblock %}
-	</body>
-</html>			
+<head>
+  <link type="text/css" rel="stylesheet" href="/static/main.css" />
+
+  <title>CS 253 Blog</title>
+</head>
+
+<body>
+  <a href="/blog" class="main-title">
+    CS 253 Blog
+  </a>
+
+  <div id="content">
+  {% block content %}
+  {% endblock %}
+  </div>
+</body>
+
+</html>
+
